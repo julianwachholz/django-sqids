@@ -14,29 +14,33 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ["3.6", "3.7", "3.8", "3.9"]
-        django-version: ["1.11.29", "2.2.13", "3.0.7", "3.1.2", "3.2.4"]
-        include:
-          - python-version: "3.10"
-            django-version: "4.0.4"
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        django-version: ["3.2.23", "4.2.7", "5.0b1"]
+        exclude:
+          - python-version: "3.12"
+            django-version: "3.2.23"
+          - python-version: "3.8"
+            django-version: "5.0b1"
+          - python-version: "3.9"
+            django-version: "5.0b1"
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install tooling
         run: |
-          python -mpip install poetry; python -mpip install six
+          python -m pip install poetry==1.7.0
       - name: Install dependencies
         run: |
           poetry install
       - name: Setup Django ${{ matrix.django-version }}
         run: |
-          poetry run pip install django==${{ matrix.django-version }}
+          poetry run pip install --pre django==${{ matrix.django-version }}
       - name: Lint with flake
         run: |
           poetry run flake8 django_sqids
       - name: Test with pytest
         run: |
-          poetry run pytest --cov=./django_sqids/
+          poetry run pytest
