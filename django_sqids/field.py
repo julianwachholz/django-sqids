@@ -19,7 +19,6 @@ class SqidsField(Field):
         real_field_name="id",
         *args,
         sqids_instance=None,
-        salt=None,
         alphabet=None,
         min_length=None,
         **kwargs
@@ -27,7 +26,6 @@ class SqidsField(Field):
         kwargs.pop("editable", None)
         super().__init__(*args, editable=False, **kwargs)
         self.real_field_name = real_field_name
-        self.salt = salt
         self.min_length = min_length
         self.alphabet = alphabet
         self._explicit_sqids_instance = sqids_instance
@@ -62,27 +60,20 @@ class SqidsField(Field):
 
     def get_sqid_instance(self):
         if self._explicit_sqids_instance:
-            if (
-                self.salt is not None
-                or self.alphabet is not None
-                or self.min_length is not None
-            ):
+            if self.alphabet is not None or self.min_length is not None:
                 raise ConfigError(
-                    "if sqids_instance is set, salt, min_length and alphabet should not be set"
+                    "if sqids_instance is set, min_length and alphabet should not be set"
                 )
             return self._explicit_sqids_instance
-        salt = self.salt
         min_length = self.min_length
         alphabet = self.alphabet
-        if salt is None:
-            salt = getattr(settings, "DJANGO_SQIDS_SALT")
         if min_length is None:
             min_length = (
                 getattr(settings, "DJANGO_SQIDS_MIN_LENGTH", None) or self.MIN_LENGTH
             )
         if alphabet is None:
             alphabet = getattr(settings, "DJANGO_SQIDS_ALPHABET", None) or self.ALPHABET
-        return Sqids(salt=salt, min_length=min_length, alphabet=alphabet)
+        return Sqids(min_length=min_length, alphabet=alphabet)
 
     def get_prep_value(self, value):
         decoded_values = self.sqids_instance.decode(value)
@@ -91,7 +82,7 @@ class SqidsField(Field):
         return decoded_values[0]
 
     def from_db_value(self, value, expression, connection, *args):
-        return self.sqids_instance.encode(value)
+        return self.sqids_instance.encode([value])
 
     def get_col(self, alias, output_field=None):
         if output_field is None:
@@ -127,7 +118,7 @@ class SqidsField(Field):
         if real_value is None:
             return ""
         assert isinstance(real_value, int)
-        return self.sqids_instance.encode(real_value)
+        return self.sqids_instance.encode([real_value])
 
     def __set__(self, instance, value):
         pass

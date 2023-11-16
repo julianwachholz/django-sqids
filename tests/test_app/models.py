@@ -7,26 +7,26 @@ from django_sqids import SqidsField
 
 
 class TestModel(Model):
-    sqids = SqidsField(real_field_name="id")
+    sqid = SqidsField(real_field_name="id")
 
 
 class TestModelWithDifferentConfig(Model):
-    sqids = SqidsField(min_length=5, alphabet="OPQRST1234567890")
+    sqid = SqidsField(min_length=5, alphabet="OPQRST1234567890")
 
 
 this_sqids_instance = Sqids()
 
 
 class TestModelWithOwnInstance(Model):
-    sqids = SqidsField(sqids_instance=this_sqids_instance)
+    sqid = SqidsField(sqids_instance=this_sqids_instance)
 
 
 class TestUser(AbstractUser):
-    sqids = SqidsField(real_field_name="id")
+    sqid = SqidsField(real_field_name="id")
 
 
 class TestUserRelated(Model):
-    sqids = SqidsField(real_field_name="id")
+    sqid = SqidsField(real_field_name="id")
 
     user = models.ForeignKey(
         "TestUser", related_name="related", on_delete=models.CASCADE
@@ -42,7 +42,7 @@ class SecondSubClass(FirstSubClass):
 
 
 class TestAbstractModel(models.Model):
-    sqids = SqidsField(real_field_name="id")
+    sqid = SqidsField(real_field_name="id")
 
     class Meta:
         abstract = True
@@ -57,4 +57,4 @@ class ModelB(ModelA):
 
 
 class ModelUsingPKAsRealFieldName(Model):
-    sqids = SqidsField(real_field_name="pk")
+    sqid = SqidsField(real_field_name="pk")

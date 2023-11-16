@@ -10,8 +10,8 @@ django-sqids is a simple and non-intrusive [sqids](https://sqids.org/) library f
 - Proxy the internal model `pk` field without storing the value in the database.
 - Allows lookups and filtering by sqid string.
 - Can be used as sort key
-- Allows specifying a salt, min_length and alphabet globally
-- Supports custom salt, min_length, and alphabet per field
+- Allows specifying a min_length and alphabet globally
+- Supports custom min_length, and alphabet per field
 - Supports Django REST Framework Serializers
 - Supports exact ID searches in Django Admin when field is specified in search_fields.
 - Supports common filtering lookups, such as __iexact, __contains, __icontains, though matching is the same as __exact.
@@ -85,20 +85,18 @@ class YourDetailView(DetailView):
 ## Config
 
 The folloing attributes can be added in settings file to set default arguments of `SqidsField`:
-1. `DJANGO_SQIDS_SALT`: default salt
-2. `DJANGO_SQIDS_MIN_LENGTH`: default minimum length
-3. `DJANGO_SQIDS_ALPHABET`: default alphabet
+1. `DJANGO_SQIDS_MIN_LENGTH`: default minimum length
+2. `DJANGO_SQIDS_ALPHABET`: default alphabet
 
-`SqidsField` does not reqiure any arguments but the followinig arguments can be supplied to modify its behavior.
+`SqidsField` does not reqiure any arguments but the following arguments can be supplied to modify its behavior.
 
 | Name               |                        Description                        |
 | ------------------ | :-------------------------------------------------------: |
 | `real_field_name`  |                  The proxied field name                   |
 | `sqids_instance` | The sqids instance used to encode/decode for this field |
-| `salt`             |     The salt used for this field to generate sqids      |
 | `min_length`       |  The minimum length of sqids generated for this field   |
 | `alphabet`         |    The alphabet used by this field to generate sqids    |
 
-The argument `sqids_instance` is mutually exclusive to `salt`, `min_length` and `alphabet`. See [sqids-python](https://github.com/sqids/sqids-python) for more info about the arguments.
+The argument `sqids_instance` is mutually exclusive to `min_length` and `alphabet`. See [sqids-python](https://github.com/sqids/sqids-python) for more info about the arguments.
 
 Some common Model arguments such as `verbose_name` are also supported.

@@ -20,7 +20,7 @@ def test_can_get_sqids():
 
     instance = TestModel.objects.create()
     sqid = instance.sqid
-    sqids_instance = Sqids(salt=settings.DJANGO_SQIDS_SALT)
+    sqids_instance = Sqids()
     assert sqids_instance.decode(sqid)[0] == instance.pk
 
 
@@ -35,7 +35,7 @@ def test_can_use_per_field_config():
 
     instance = TestModelWithDifferentConfig.objects.create()
     sqid = instance.sqid
-    sqids_instance = Sqids(salt="AAA", min_length=5, alphabet="OPQRST1234567890")
+    sqids_instance = Sqids(min_length=5, alphabet="OPQRST1234567890")
     assert sqids_instance.decode(sqid)[0] == instance.pk
 
 
@@ -57,7 +57,7 @@ def test_throws_when_setting_both_instance_and_config():
             class Meta:
                 app_label = "tests.test_app"
 
-            hash_id = SqidsField(salt="Anotherone", sqids_instance=this_sqids_instance)
+            hash_id = SqidsField(min_length=10, sqids_instance=this_sqids_instance)
 
 
 def test_updates_when_changing_real_column_value():
@@ -67,11 +67,11 @@ def test_updates_when_changing_real_column_value():
     instance = TestModel.objects.create()
     instance.id = 3
     # works before saving
-    sqids_instance = Sqids(salt=settings.DJANGO_SQIDS_SALT)
+    sqids_instance = Sqids()
     assert sqids_instance.decode(instance.sqid)[0] == 3
     # works after saving
     instance.save()
-    sqids_instance = Sqids(salt=settings.DJANGO_SQIDS_SALT)
+    sqids_instance = Sqids()
     assert sqids_instance.decode(instance.sqid)[0] == 3
 
 
@@ -83,13 +83,13 @@ def test_ignores_changes_to_value():
     instance.id = 3
     instance.sqid = "FOO"
 
-    sqids_instance = Sqids(salt=settings.DJANGO_SQIDS_SALT)
+    sqids_instance = Sqids()
     assert sqids_instance.decode(instance.sqid)[0] == 3
     # works after saving
     instance.save()
 
     instance.sqid = "FOO"
-    sqids_instance = Sqids(salt=settings.DJANGO_SQIDS_SALT)
+    sqids_instance = Sqids()
     assert sqids_instance.decode(instance.sqid)[0] == 3
 
 
