@@ -6,6 +6,8 @@
 
 django-sqids is a simple and non-intrusive [sqids](https://sqids.org/) library for Django. It acts as a model field, but it does not touch the database or change the model.
 
+The project was forked from [django-hashids](https://github.com/ericls/django-hashids) to provide the same functionality with the newer Sqids library.
+
 # Features
 - Proxy the internal model `pk` field without storing the value in the database.
 - Allows lookups and filtering by sqid string.
