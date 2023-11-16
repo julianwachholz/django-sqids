@@ -10,17 +10,17 @@ authors = ["Julian Wachholz <julian@wachholz.ch>", "Shen Li <dustet@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = ">=3.6.2,<4"
+python = ">=3.8.1,<4"
 sqids = ">=0.4.1"
 
 [tool.poetry.dev-dependencies]
-django = "^3.0.7"
-pytest = "^6.2.5"
-black = "^22.0.3"
-pytest-django = "^4.5.2"
-pytest-cov = "^3.0.0"
-flake8 = "^3.8.3"
-isort = "^4.3.21"
+django = "^4.2.7"
+pytest = "^7.4.3"
+black = "^23.11.0"
+pytest-django = "^4.7.0"
+pytest-cov = "^4.1.0"
+flake8 = "^6.1.0"
+isort = "^5.12.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
