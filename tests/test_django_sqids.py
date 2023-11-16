@@ -6,6 +6,7 @@ from django.db.models import ExpressionWrapper, F, IntegerField
 from django.test import override_settings
 from sqids import Sqids
 
+from django_sqids.field import shuffle_alphabet
 from django_sqids.exceptions import ConfigError, RealFieldDoesNotExistError
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "tests.settings"
@@ -58,6 +59,16 @@ def test_throws_when_setting_both_instance_and_config():
                 app_label = "tests.test_app"
 
             hash_id = SqidsField(min_length=10, sqids_instance=this_sqids_instance)
+
+
+def test_shuffle_alphabet_uses_seed():
+    assert shuffle_alphabet("one") != shuffle_alphabet("two")
+
+
+def test_shuffle_alphabet_uses_alphabet():
+    alphabet = "LOREMIPSU"
+    assert shuffle_alphabet("same", alphabet) == shuffle_alphabet("same", alphabet)
+    assert shuffle_alphabet("one", alphabet) != shuffle_alphabet("two", alphabet)
 
 
 def test_updates_when_changing_real_column_value():

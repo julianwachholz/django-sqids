@@ -100,3 +100,20 @@ The folloing attributes can be added in settings file to set default arguments o
 The argument `sqids_instance` is mutually exclusive to `min_length` and `alphabet`. See [sqids-python](https://github.com/sqids/sqids-python) for more info about the arguments.
 
 Some common Model arguments such as `verbose_name` are also supported.
+
+## Where did the Salt go?
+
+[Sqids removed the "salt" parameter](https://sqids.org/faq#salt) to prevent association with security or safety.
+`django_sqids` provides a useful `shuffle_alphabet` function that helps reintroduce the same idea:
+
+```python
+from django_sqids import SqidsField, shuffle_alphabet
+
+class MyModel(models.Model):
+    # will use your configured default alphabet
+    sqid = SqidsField(alphabet=shuffle_alphabet(seed='randomSeed'))
+
+class HexModel(models.Model):
+    sqid = SqidsField(alphabet=shuffle_alphabet(seed='randomSeed', alphabet='0123456789abcdef'))
+
+```

@@ -1,18 +1,33 @@
+import random
+
 from django.conf import settings
 from django.core.exceptions import FieldError
 from django.db.models import Field
 from django.utils.functional import cached_property
 from sqids import Sqids
+from sqids.constants import DEFAULT_ALPHABET, DEFAULT_MIN_LENGTH
 
 from .exceptions import ConfigError, RealFieldDoesNotExistError
+
+
+def shuffle_alphabet(seed, alphabet=None):
+    """
+    Randomize the order of the alphabet.
+
+    :param seed: Used to initialize Random(seed).
+    :param str alphabet: Override the default alphabet used.
+
+    """
+    if alphabet is None:
+        alphabet = getattr(settings, "DJANGO_SQIDS_ALPHABET", None) or DEFAULT_ALPHABET
+    letters = list(alphabet)
+    random.Random(seed).shuffle(letters)
+    return "".join(letters)
 
 
 class SqidsField(Field):
     concrete = False
     allowed_lookups = ("exact", "iexact", "in", "gt", "gte", "lt", "lte", "isnull")
-    # these should never change, even when Sqids updates
-    ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    MIN_LENGTH = 0
 
     def __init__(
         self,
@@ -69,10 +84,12 @@ class SqidsField(Field):
         alphabet = self.alphabet
         if min_length is None:
             min_length = (
-                getattr(settings, "DJANGO_SQIDS_MIN_LENGTH", None) or self.MIN_LENGTH
+                getattr(settings, "DJANGO_SQIDS_MIN_LENGTH", None) or DEFAULT_MIN_LENGTH
             )
         if alphabet is None:
-            alphabet = getattr(settings, "DJANGO_SQIDS_ALPHABET", None) or self.ALPHABET
+            alphabet = (
+                getattr(settings, "DJANGO_SQIDS_ALPHABET", None) or DEFAULT_ALPHABET
+            )
         return Sqids(min_length=min_length, alphabet=alphabet)
 
     def get_prep_value(self, value):
