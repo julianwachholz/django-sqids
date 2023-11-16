@@ -27,7 +27,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install tooling
         run: |
-          python -mpip install poetry codecov; python -mpip install six
+          python -mpip install poetry; python -mpip install six
       - name: Install dependencies
         run: |
           poetry install
@@ -39,9 +39,4 @@ jobs:
           poetry run flake8 django_sqids
       - name: Test with pytest
         run: |
-          poetry run py.test --cov=./django_sqids/
-      - name: Upload coverage to codecov
-        run: |
-          codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          poetry run pytest --cov=./django_sqids/
