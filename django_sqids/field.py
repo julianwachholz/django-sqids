@@ -2,23 +2,23 @@ from django.conf import settings
 from django.core.exceptions import FieldError
 from django.db.models import Field
 from django.utils.functional import cached_property
-from hashids import Hashids
+from sqids import Sqids
 
 from .exceptions import ConfigError, RealFieldDoesNotExistError
 
 
-class HashidsField(Field):
+class SqidsField(Field):
     concrete = False
     allowed_lookups = ("exact", "iexact", "in", "gt", "gte", "lt", "lte", "isnull")
-    # these should never change, even when Hashids updates
-    ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+    # these should never change, even when Sqids updates
+    ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     MIN_LENGTH = 0
 
     def __init__(
         self,
         real_field_name="id",
         *args,
-        hashids_instance=None,
+        sqids_instance=None,
         salt=None,
         alphabet=None,
         min_length=None,
@@ -30,9 +30,9 @@ class HashidsField(Field):
         self.salt = salt
         self.min_length = min_length
         self.alphabet = alphabet
-        self._explicit_hashids_instance = hashids_instance
+        self._explicit_sqids_instance = sqids_instance
 
-        self.hashids_instance = None
+        self.sqids_instance = None
         self.attached_to_model = None
 
     def contribute_to_class(self, cls, name):
@@ -58,42 +58,40 @@ class HashidsField(Field):
 
         cls._meta.add_field(self, private=True)
 
-        self.hashids_instance = self.get_hashid_instance()
+        self.sqids_instance = self.get_sqid_instance()
 
-    def get_hashid_instance(self):
-        if self._explicit_hashids_instance:
+    def get_sqid_instance(self):
+        if self._explicit_sqids_instance:
             if (
                 self.salt is not None
                 or self.alphabet is not None
                 or self.min_length is not None
             ):
                 raise ConfigError(
-                    "if hashids_instance is set, salt, min_length and alphabet should not be set"
+                    "if sqids_instance is set, salt, min_length and alphabet should not be set"
                 )
-            return self._explicit_hashids_instance
+            return self._explicit_sqids_instance
         salt = self.salt
         min_length = self.min_length
         alphabet = self.alphabet
         if salt is None:
-            salt = getattr(settings, "DJANGO_HASHIDS_SALT")
+            salt = getattr(settings, "DJANGO_SQIDS_SALT")
         if min_length is None:
             min_length = (
-                getattr(settings, "DJANGO_HASHIDS_MIN_LENGTH", None) or self.MIN_LENGTH
+                getattr(settings, "DJANGO_SQIDS_MIN_LENGTH", None) or self.MIN_LENGTH
             )
         if alphabet is None:
-            alphabet = (
-                getattr(settings, "DJANGO_HASHIDS_ALPHABET", None) or self.ALPHABET
-            )
-        return Hashids(salt=salt, min_length=min_length, alphabet=alphabet)
+            alphabet = getattr(settings, "DJANGO_SQIDS_ALPHABET", None) or self.ALPHABET
+        return Sqids(salt=salt, min_length=min_length, alphabet=alphabet)
 
     def get_prep_value(self, value):
-        decoded_values = self.hashids_instance.decode(value)
+        decoded_values = self.sqids_instance.decode(value)
         if not decoded_values:
             return None
         return decoded_values[0]
 
     def from_db_value(self, value, expression, connection, *args):
-        return self.hashids_instance.encode(value)
+        return self.sqids_instance.encode(value)
 
     def get_col(self, alias, output_field=None):
         if output_field is None:
@@ -129,14 +127,14 @@ class HashidsField(Field):
         if real_value is None:
             return ""
         assert isinstance(real_value, int)
-        return self.hashids_instance.encode(real_value)
+        return self.sqids_instance.encode(real_value)
 
     def __set__(self, instance, value):
         pass
 
     def __deepcopy__(self, memo=None):
         new_instance = super().__deepcopy__(memo)
-        for attr in ("hashids_instance", "attached_to_model"):
+        for attr in ("sqids_instance", "attached_to_model"):
             if hasattr(new_instance, attr):
                 setattr(new_instance, attr, None)
         # remove cached values from cached_property
@@ -151,4 +149,4 @@ class HashidsField(Field):
         return {k: all_lookups[k] for k in cls.allowed_lookups}
 
 
-HashidField = HashidsField
+SqidField = SqidsField

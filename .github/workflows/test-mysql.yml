@@ -62,10 +62,10 @@ jobs:
           poetry run pip install django==${{ matrix.django-version }}
       - name: Lint with flake
         run: |
-          poetry run flake8 django_hashids
+          poetry run flake8 django_sqids
       - name: Test with pytest
         run: |
-          poetry run py.test --cov=./django_hashids/ --no-migrations
+          poetry run py.test --cov=./django_sqids/ --no-migrations
       - name: Upload coverage to codecov
         run: |
           codecov

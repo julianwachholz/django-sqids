@@ -1,17 +1,17 @@
 [tool.poetry]
-name = "django-hashids"
-version = "0.7.0"
+name = "django-sqids"
+version = "0.1.0"
 readme = "README.md"
-description = "Non-intrusive hashids library for Django"
-homepage = "https://github.com/ericls/django-hashids"
-repository = "https://github.com/ericls/django-hashids"
-keywords = ["django", "hashids", "hashid"]
-authors = ["Shen Li <dustet@gmail.com>"]
+description = "Non-intrusive sqids library for Django"
+homepage = "https://github.com/julianwachholz/django-sqids"
+repository = "https://github.com/julianwachholz/django-sqids"
+keywords = ["django", "sqids", "sqid", "hashids", "hashid"]
+authors = ["Julian Wachholz <julian@wachholz.ch>", "Shen Li <dustet@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
 python = ">=3.6.2,<4"
-hashids = ">=1.0.2"
+sqids = ">=0.4.1"
 
 [tool.poetry.dev-dependencies]
 django = "^3.0.7"

@@ -9,7 +9,7 @@ INSTALLED_APPS = [
 ]
 MIDDLEWARE = []
 ROOT_URLCONF = "tests.urls"
-DJANGO_HASHIDS_SALT = "???!"
+DJANGO_SQIDS_SALT = "???!"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",

@@ -1,15 +1,14 @@
-# Django Hashids
-[![Github Actions](https://github.com/ericls/django-hashids/workflows/test/badge.svg)](https://github.com/ericls/django-hashids/actions)
-[![Code Coverage](https://codecov.io/gh/ericls/django-hashids/branch/master/graph/badge.svg)](https://codecov.io/gh/ericls/django-hashids)
-[![Python Version](https://img.shields.io/pypi/pyversions/django-hashids.svg)](https://pypi.org/project/django-hashids/)
-[![PyPI Package](https://img.shields.io/pypi/v/django-hashids.svg)](https://pypi.org/project/django-hashids/)
-[![License](https://img.shields.io/pypi/l/django-hashids.svg)](https://github.com/ericls/django-hashids/blob/master/LICENSE)
+# Django Sqids
+[![Github Actions](https://github.com/julianwachholz/django-sqids/workflows/test/badge.svg)](https://github.com/julianwachholz/django-sqids/actions)
+[![Python Version](https://img.shields.io/pypi/pyversions/django-sqids.svg)](https://pypi.org/project/django-sqids/)
+[![PyPI Package](https://img.shields.io/pypi/v/django-sqids.svg)](https://pypi.org/project/django-sqids/)
+[![License](https://img.shields.io/pypi/l/django-sqids.svg)](https://github.com/julianwachholz/django-sqids/blob/main/LICENSE)
 
-django-hashids is a simple and non-intrusive hashids library for Django. It acts as a model field, but it does not touch the database or change the model.
+django-sqids is a simple and non-intrusive [sqids](https://sqids.org/) library for Django. It acts as a model field, but it does not touch the database or change the model.
 
 # Features
 - Proxy the internal model `pk` field without storing the value in the database.
-- Allows lookups and filtering by hashid string.
+- Allows lookups and filtering by sqid string.
 - Can be used as sort key
 - Allows specifying a salt, min_length and alphabet globally
 - Supports custom salt, min_length, and alphabet per field
@@ -21,23 +20,23 @@ django-hashids is a simple and non-intrusive hashids library for Django. It acts
 # Install
 
 ```bash
-pip install django-hashids
+pip install django-sqids
 ```
 
-`django-hashids` is tested with Django 1.11, 2.2, 3.0, 3.1, 3.2, 4.0 and python 3.6, 3.7, 3.8, 3.9, 3.10.
+`django-sqids` is tested with Django 1.11, 2.2, 3.0, 3.1, 3.2, 4.0 and python 3.6, 3.7, 3.8, 3.9, 3.10.
 
 # Usage
 
-Add `HashidsField` to any model
+Add `SqidsField` to any model
 
 ```python
-from django_hashids import HashidsField
+from django_sqids import SqidsField
 
 class TestModel(Model):
-    hashid = HashidsField(real_field_name="id")
+    sqid = SqidsField(real_field_name="id")
 ```
 
-`TestModel.hashid` field will proxy `TestModel.id` field but all queries will return and receive hashids strings. `TestModel.id` will work as before.
+`TestModel.sqid` field will proxy `TestModel.id` field but all queries will return and receive sqids strings. `TestModel.id` will work as before.
 
 ## Examples
 
@@ -48,24 +47,24 @@ instance.id  # 1
 instance2.id  # 2
 
 # Allows access to the field
-instance.hashid  # '1Z'
-instance2.hashid  # '4x'
+instance.sqid  # '1Z'
+instance2.sqid  # '4x'
 
 # Allows querying by the field
-TestModel.objects.get(hashid="1Z")
-TestModel.objects.filter(hashid="1Z")
-TestModel.objects.filter(hashid__in=["1Z", "4x"])
-TestModel.objects.filter(hashid__gt="1Z")  # same as id__gt=1, would return instance 2
+TestModel.objects.get(sqid="1Z")
+TestModel.objects.filter(sqid="1Z")
+TestModel.objects.filter(sqid__in=["1Z", "4x"])
+TestModel.objects.filter(sqid__gt="1Z")  # same as id__gt=1, would return instance 2
 
 # Allows usage in queryset.values
-TestModel.objects.values_list("hashid", flat=True) # ["1Z", "4x"]
-TestModel.objects.filter(hashid__in=TestModel.objects.values("hashid"))
+TestModel.objects.values_list("sqid", flat=True) # ["1Z", "4x"]
+TestModel.objects.filter(sqid__in=TestModel.objects.values("sqid"))
 
 ```
 
 ## Using with URLs
 
-You can use hashids to identify items in your URLs by treating them as slugs.
+You can use sqids to identify items in your URLs by treating them as slugs.
 
 In `urls.py`:
 
@@ -80,26 +79,26 @@ And in your view:
 ```python
 class YourDetailView(DetailView):
     model = Item
-    slug_field = 'hashid'
+    slug_field = 'sqid'
 ```
 
 ## Config
 
-The folloing attributes can be added in settings file to set default arguments of `HashidsField`:
-1. `DJANGO_HASHIDS_SALT`: default salt
-2. `DJANGO_HASHIDS_MIN_LENGTH`: default minimum length
-3. `DJANGO_HASHIDS_ALPHABET`: default alphabet
+The folloing attributes can be added in settings file to set default arguments of `SqidsField`:
+1. `DJANGO_SQIDS_SALT`: default salt
+2. `DJANGO_SQIDS_MIN_LENGTH`: default minimum length
+3. `DJANGO_SQIDS_ALPHABET`: default alphabet
 
-`HashidsField` does not reqiure any arguments but the followinig arguments can be supplied to modify its behavior.
+`SqidsField` does not reqiure any arguments but the followinig arguments can be supplied to modify its behavior.
 
 | Name               |                        Description                        |
 | ------------------ | :-------------------------------------------------------: |
 | `real_field_name`  |                  The proxied field name                   |
-| `hashids_instance` | The hashids instance used to encode/decode for this field |
-| `salt`             |     The salt used for this field to generate hashids      |
-| `min_length`       |  The minimum length of hashids generated for this field   |
-| `alphabet`         |    The alphabet used by this field to generate hashids    |
+| `sqids_instance` | The sqids instance used to encode/decode for this field |
+| `salt`             |     The salt used for this field to generate sqids      |
+| `min_length`       |  The minimum length of sqids generated for this field   |
+| `alphabet`         |    The alphabet used by this field to generate sqids    |
 
-The argument `hashids_instance` is mutually exclusive to `salt`, `min_length` and `alphabet`. See [hashids-python](https://github.com/davidaurelio/hashids-python) for more info about the arguments.
+The argument `sqids_instance` is mutually exclusive to `salt`, `min_length` and `alphabet`. See [sqids-python](https://github.com/sqids/sqids-python) for more info about the arguments.
 
 Some common Model arguments such as `verbose_name` are also supported.
