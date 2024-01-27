@@ -155,6 +155,3 @@ class SqidsField(Field):
     def get_lookups(cls):
         all_lookups = super().get_lookups()
         return {k: all_lookups[k] for k in cls.allowed_lookups}
-
-
-SqidField = SqidsField
