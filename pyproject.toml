@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-sqids"
-version = "0.1.0"
+version = "0.1.1"
 readme = "README.md"
 description = "Non-intrusive sqids library for Django"
 homepage = "https://github.com/julianwachholz/django-sqids"
@@ -13,14 +13,17 @@ license = "MIT"
 python = ">=3.8.1,<4"
 sqids = ">=0.4.1"
 
-[tool.poetry.dev-dependencies]
-django = "^4.2.7"
-pytest = "^7.4.3"
+[tool.poetry.group.dev.dependencies]
+django = [
+  { version = "^4.2.7", python = ">=3.8.1,<3.10" },
+  { version = "^5.0.1", python = ">=3.10" },
+]
 black = "^23.11.0"
-pytest-django = "^4.7.0"
-pytest-cov = "^4.1.0"
 flake8 = "^6.1.0"
 isort = "^5.12.0"
+pytest = "^7.4.3"
+pytest-cov = "^4.1.0"
+pytest-django = "^4.7.0"
 
 [build-system]
 requires = ["poetry>=0.12"]

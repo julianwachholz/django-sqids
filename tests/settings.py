@@ -9,6 +9,7 @@ INSTALLED_APPS = [
 ]
 MIDDLEWARE = []
 ROOT_URLCONF = "tests.urls"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
