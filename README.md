@@ -1,4 +1,5 @@
 # Django Sqids
+
 [![Github Actions](https://github.com/julianwachholz/django-sqids/workflows/test/badge.svg)](https://github.com/julianwachholz/django-sqids/actions)
 [![Python Version](https://img.shields.io/pypi/pyversions/django-sqids.svg)](https://pypi.org/project/django-sqids/)
 [![PyPI Package](https://img.shields.io/pypi/v/django-sqids.svg)](https://pypi.org/project/django-sqids/)
@@ -9,6 +10,7 @@ django-sqids is a simple and non-intrusive [sqids](https://sqids.org/) library f
 The project was forked from [django-hashids](https://github.com/ericls/django-hashids) to provide the same functionality with the newer Sqids library.
 
 # Features
+
 - Proxy the internal model `pk` field without storing the value in the database.
 - Allows lookups and filtering by sqid string.
 - Can be used as sort key
@@ -16,7 +18,7 @@ The project was forked from [django-hashids](https://github.com/ericls/django-ha
 - Supports custom min_length, and alphabet per field
 - Supports Django REST Framework Serializers
 - Supports exact ID searches in Django Admin when field is specified in search_fields.
-- Supports common filtering lookups, such as __iexact, __contains, __icontains, though matching is the same as __exact.
+- Supports common filtering lookups, such as `__iexact`, `__contains`, `__icontains`, though matching is the same as `__exact`.
 - Supports other lookups: isnull, gt, gte, lt and lte.
 
 # Install
@@ -25,7 +27,7 @@ The project was forked from [django-hashids](https://github.com/ericls/django-ha
 pip install django-sqids
 ```
 
-`django-sqids` is tested with Django 1.11, 2.2, 3.0, 3.1, 3.2, 4.0 and python 3.6, 3.7, 3.8, 3.9, 3.10.
+`django-sqids` is tested with Django 3.2, 4.2, 5.0 and Python 3.8 - 3.12.
 
 # Usage
 
@@ -84,20 +86,32 @@ class YourDetailView(DetailView):
     slug_field = 'sqid'
 ```
 
+## Using with Django Admin
+
+Add the field to your ModelAdmin's `search_fields` to quickly find a record by its Sqid:
+
+```python
+class MyModelAdmin(admin.ModelAdmin):
+    search_fields = [
+        "sqid__exact",
+    ]
+```
+
 ## Config
 
 The folloing attributes can be added in settings file to set default arguments of `SqidsField`:
+
 1. `DJANGO_SQIDS_MIN_LENGTH`: default minimum length
 2. `DJANGO_SQIDS_ALPHABET`: default alphabet
 
 `SqidsField` does not reqiure any arguments but the following arguments can be supplied to modify its behavior.
 
-| Name               |                        Description                        |
-| ------------------ | :-------------------------------------------------------: |
-| `real_field_name`  |                  The proxied field name                   |
-| `sqids_instance` | The sqids instance used to encode/decode for this field |
-| `min_length`       |  The minimum length of sqids generated for this field   |
-| `alphabet`         |    The alphabet used by this field to generate sqids    |
+| Name              |                       Description                       |
+| ----------------- | :-----------------------------------------------------: |
+| `real_field_name` |                 The proxied field name                  |
+| `sqids_instance`  | The sqids instance used to encode/decode for this field |
+| `min_length`      |  The minimum length of sqids generated for this field   |
+| `alphabet`        |    The alphabet used by this field to generate sqids    |
 
 The argument `sqids_instance` is mutually exclusive to `min_length` and `alphabet`. See [sqids-python](https://github.com/sqids/sqids-python) for more info about the arguments.
 
