@@ -4,3 +4,7 @@ class ConfigError(Exception):
 
 class RealFieldDoesNotExistError(ConfigError):
     pass
+
+
+class IncorrectPrefixError(ConfigError):
+    pass
