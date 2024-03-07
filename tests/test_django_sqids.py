@@ -4,10 +4,11 @@ import pytest
 from django import setup
 from django.db.models import ExpressionWrapper, F, IntegerField
 from django.test import override_settings
+from rest_framework import serializers
 from sqids import Sqids
 
-from django_sqids.field import shuffle_alphabet
 from django_sqids.exceptions import ConfigError, RealFieldDoesNotExistError
+from django_sqids.field import shuffle_alphabet
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "tests.settings"
 setup()
@@ -17,6 +18,7 @@ pytestmark = pytest.mark.django_db
 
 def test_can_get_sqids():
     from django.conf import settings
+
     from tests.test_app.models import TestModel
 
     instance = TestModel.objects.create()
@@ -49,8 +51,9 @@ def test_can_use_per_field_instance():
 
 def test_throws_when_setting_both_instance_and_config():
     from django.db.models import Model
-    from tests.test_app.models import this_sqids_instance
+
     from django_sqids import SqidsField
+    from tests.test_app.models import this_sqids_instance
 
     with pytest.raises(ConfigError):
 
@@ -73,6 +76,7 @@ def test_shuffle_alphabet_uses_alphabet():
 
 def test_updates_when_changing_real_column_value():
     from django.conf import settings
+
     from tests.test_app.models import TestModel
 
     instance = TestModel.objects.create()
@@ -88,6 +92,7 @@ def test_updates_when_changing_real_column_value():
 
 def test_ignores_changes_to_value():
     from django.conf import settings
+
     from tests.test_app.models import TestModel
 
     instance = TestModel.objects.create()
@@ -226,7 +231,7 @@ def test_create_user():
 
 def test_multiple_level_inheritance():
     # https://github.com/ericls/django-sqids/issues/25
-    from tests.test_app.models import SecondSubClass, FirstSubClass
+    from tests.test_app.models import FirstSubClass, SecondSubClass
 
     instance = SecondSubClass.objects.create()
     SecondSubClass.objects.filter(id=1).first() == SecondSubClass.objects.filter(
@@ -241,7 +246,7 @@ def test_multiple_level_inheritance():
 
 def test_multiple_level_inheritance_from_abstract_model():
     # https://github.com/ericls/django-sqids/issues/25
-    from tests.test_app.models import ModelB, ModelA
+    from tests.test_app.models import ModelA, ModelB
 
     instance = ModelB.objects.create()
     ModelB.objects.filter(id=1).first() == ModelB.objects.filter(
@@ -277,6 +282,7 @@ def test_using_pk_as_real_field_name():
 
 def test_no_real_field_error_message():
     from django.db.models import Model
+
     from django_sqids import SqidsField
 
     class Foo(Model):
@@ -287,3 +293,48 @@ def test_no_real_field_error_message():
 
     with pytest.raises(RealFieldDoesNotExistError):
         Foo.objects.filter(hash_id="foo")
+
+
+def test_basic_serialization():
+    from tests.test_app.models import TestModel
+
+    class TestModelSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = TestModel
+            fields = ["sqid"]
+
+    instance = TestModel.objects.create()
+    serializer = TestModelSerializer(instance)
+    serialized_data = serializer.data
+    assert "sqid" in serializer.data
+    assert serializer.data["sqid"] == instance.sqid
+
+
+def test_serialization_with_custom_config():
+    from tests.test_app.models import TestModelWithDifferentConfig
+
+    class TestModelWithDifferentConfigSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = TestModelWithDifferentConfig
+            fields = ["sqid"]
+
+    instance = TestModelWithDifferentConfig.objects.create()
+    serializer = TestModelWithDifferentConfigSerializer(instance)
+    assert "sqid" in serializer.data
+
+
+def test_serialization_with_own_sqids_instance():
+    from tests.test_app.models import TestModelWithOwnInstance
+
+    class TestModelWithOwnInstanceSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = TestModelWithOwnInstance
+            fields = ["sqid"]
+
+    instance = TestModelWithOwnInstance.objects.create()
+    serializer = TestModelWithOwnInstanceSerializer(instance)
+
+    assert "sqid" in serializer.data, "Serialized data must include 'sqid' field"
+    assert (
+        serializer.data["sqid"] == instance.sqid
+    ), "The serialized 'sqid' should match the instance's sqid"
