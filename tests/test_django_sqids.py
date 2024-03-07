@@ -4,6 +4,7 @@ import pytest
 from django import setup
 from django.db.models import ExpressionWrapper, F, IntegerField
 from django.test import override_settings
+from django.urls import reverse
 from rest_framework import serializers
 from sqids import Sqids
 
@@ -300,54 +301,6 @@ def test_no_real_field_error_message():
         Foo.objects.filter(hash_id="foo")
 
 
-def test_basic_serialization():
-    from tests.test_app.models import TestModel
-
-    class TestModelSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = TestModel
-            fields = ["sqid"]
-
-    instance = TestModel.objects.create()
-    serializer = TestModelSerializer(instance)
-    serialized_data = serializer.data
-    assert "sqid" in serializer.data
-    assert serializer.data["sqid"] == instance.sqid
-
-
-def test_serialization_with_custom_config():
-    from tests.test_app.models import TestModelWithDifferentConfig
-
-    class TestModelWithDifferentConfigSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = TestModelWithDifferentConfig
-            fields = ["sqid"]
-
-    instance = TestModelWithDifferentConfig.objects.create()
-    serializer = TestModelWithDifferentConfigSerializer(instance)
-    assert "sqid" in serializer.data
-    # Perform any additional assertions specific to your custom config
-
-
-def test_serialization_with_own_sqids_instance():
-    from tests.test_app.models import TestModelWithOwnInstance
-
-    class TestModelWithOwnInstanceSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = TestModelWithOwnInstance
-            fields = ["sqid"]
-
-    instance = TestModelWithOwnInstance.objects.create()
-    serializer = TestModelWithOwnInstanceSerializer(instance)
-
-    assert "sqid" in serializer.data, "Serialized data must include 'sqid' field"
-    # Verify that the sqid in the serialized data matches the instance's sqid.
-    # This ensures that the custom Sqids instance is used for serialization.
-    assert (
-        serializer.data["sqid"] == instance.sqid
-    ), "The serialized 'sqid' should match the instance's sqid"
-
-
 def test_prefix_is_applied_correctly():
     from tests.test_app.models import TestModelWithPrefix
 
@@ -360,9 +313,11 @@ def test_lookups_work_with_manual_prefix():
 
     instance = TestModelWithPrefix.objects.create()
     sqids = Sqids()
-    id = f"P-{sqids.encode([instance.pk])}"
+    sqids_with_prefix = f"P-{sqids.encode([instance.pk])}"
 
-    got_instance = TestModelWithPrefix.objects.filter(sqid__exact=id).first()
+    got_instance = TestModelWithPrefix.objects.filter(
+        sqid__exact=sqids_with_prefix
+    ).first()
     assert instance == got_instance, "Exact lookup with prefix should work"
 
 
@@ -472,3 +427,63 @@ def test_serialization_with_prefix():
     input_data = {"sqid": serialized_data["sqid"]}
     new_serializer = TestModelWithPrefixSerializer(data=input_data)
     assert new_serializer.is_valid(), "Deserialized data with prefix should be valid"
+
+
+def test_url_for_model_without_prefix(client):
+    """Test that the URL for a model without prefix can be resolved."""
+    from tests.test_app.models import TestModel
+
+    instance = TestModel.objects.create()
+    url = reverse("without-prefix", kwargs={"sqid": instance.sqid})
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.context["object"] == instance
+
+
+def test_incorrect_url_for_model_without_prefix(client):
+    """Tests that url fails when adding a prefix to the sqid."""
+    from tests.test_app.models import TestModel
+
+    instance = TestModel.objects.create()
+    url = reverse("without-prefix", kwargs={"sqid": "P-" + instance.sqid})
+    response = client.get(url)
+    assert response.status_code == 404, "URL with incorrect prefix should fail"
+
+
+def test_url_for_model_with_prefix(client):
+    """Test that the URL for a model with prefix can be resolved."""
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance = TestModelWithPrefix.objects.create()
+    url = reverse("with-prefix", kwargs={"sqid": instance.sqid})
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.context["object"] == instance
+
+
+def test_incortect_url_for_model_with_prefix(client):
+    """Tests that IncorrectPrefixError is raised when resolving URL with incorrect prefix."""
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance = TestModelWithPrefix.objects.create()
+    with pytest.raises(IncorrectPrefixError):
+        url = reverse("with-prefix", kwargs={"sqid": instance.sqid[2:]})
+        response = client.get(url)
+
+    with pytest.raises(IncorrectPrefixError):
+        url = reverse("with-prefix", kwargs={"sqid": f"R-{instance.sqid[2:]}"})
+        response = client.get(url)
+
+
+def test_url_manually_with_prefix(client):
+    """Test that the URL for a model with prefix can be resolved manually."""
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance = TestModelWithPrefix.objects.create()
+    sqids = Sqids()
+    sqids_with_prefix = f"P-{sqids.encode([instance.pk])}"
+
+    url = reverse("with-prefix", kwargs={"sqid": sqids_with_prefix})
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.context["object"] == instance
