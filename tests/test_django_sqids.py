@@ -9,11 +9,7 @@ from rest_framework import serializers
 from sqids import Sqids
 
 from django_sqids import SqidsField
-from django_sqids.exceptions import (
-    ConfigError,
-    IncorrectPrefixError,
-    RealFieldDoesNotExistError,
-)
+from django_sqids.exceptions import ConfigError, RealFieldDoesNotExistError
 from django_sqids.field import shuffle_alphabet
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "tests.settings"
@@ -373,7 +369,7 @@ def test_lookup_with_incorrect_prefix():
 
     instance = TestModelWithPrefix.objects.create()
     incorrect_sqid = "X-" + instance.sqid[2:]
-    with pytest.raises(IncorrectPrefixError):
+    with pytest.raises(TestModelWithPrefix.DoesNotExist):
         TestModelWithPrefix.objects.get(sqid=incorrect_sqid)
 
 
@@ -384,7 +380,7 @@ def test_case_sensitivity_with_prefix():
     instance = TestModelWithPrefix.objects.create()
     # Use a different case for the prefix in the lookup
     mixed_case_sqid = "p-" + instance.sqid[2:].lower()
-    with pytest.raises(IncorrectPrefixError):
+    with pytest.raises(TestModelWithPrefix.DoesNotExist):
         TestModelWithPrefix.objects.get(sqid=mixed_case_sqid)
 
 
@@ -406,7 +402,7 @@ def test_complex_query_with_prefix():
 
 
 def test_serialization_with_prefix():
-    """Test serialization and deserialization with prefix, assuming Django REST Framework."""
+    """Test DRF serialization and deserialization with prefix."""
     from tests.test_app.models import TestModelWithPrefix
 
     class TestModelWithPrefixSerializer(serializers.ModelSerializer):
@@ -441,13 +437,13 @@ def test_url_for_model_without_prefix(client):
 
 
 def test_incorrect_url_for_model_without_prefix(client):
-    """Tests that url fails when adding a prefix to the sqid."""
+    """Tests that url fails when adding a prefix for model not expecting prefix."""
     from tests.test_app.models import TestModel
 
     instance = TestModel.objects.create()
     url = reverse("without-prefix", kwargs={"sqid": "P-" + instance.sqid})
     response = client.get(url)
-    assert response.status_code == 404, "URL with incorrect prefix should fail"
+    assert response.status_code == 404, "URL for model not expecting prefix return 404"
 
 
 def test_url_for_model_with_prefix(client):
@@ -462,17 +458,17 @@ def test_url_for_model_with_prefix(client):
 
 
 def test_incortect_url_for_model_with_prefix(client):
-    """Tests that IncorrectPrefixError is raised when resolving URL with incorrect prefix."""
+    """Tests that url fails when resolving URL with incorrect prefix."""
     from tests.test_app.models import TestModelWithPrefix
 
     instance = TestModelWithPrefix.objects.create()
-    with pytest.raises(IncorrectPrefixError):
-        url = reverse("with-prefix", kwargs={"sqid": instance.sqid[2:]})
-        response = client.get(url)
+    url = reverse("with-prefix", kwargs={"sqid": instance.sqid[2:]})
+    response = client.get(url)
+    assert response.status_code == 404, "URL without prefix returns 404"
 
-    with pytest.raises(IncorrectPrefixError):
-        url = reverse("with-prefix", kwargs={"sqid": f"R-{instance.sqid[2:]}"})
-        response = client.get(url)
+    url = reverse("with-prefix", kwargs={"sqid": f"R-{instance.sqid[2:]}"})
+    response = client.get(url)
+    assert response.status_code == 404, "URL with incorrect prefix returns 404"
 
 
 def test_url_manually_with_prefix(client):

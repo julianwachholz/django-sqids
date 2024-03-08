@@ -7,7 +7,7 @@ from django.utils.functional import cached_property
 from sqids import Sqids
 from sqids.constants import DEFAULT_ALPHABET, DEFAULT_MIN_LENGTH
 
-from .exceptions import ConfigError, IncorrectPrefixError, RealFieldDoesNotExistError
+from .exceptions import ConfigError, RealFieldDoesNotExistError
 
 
 def shuffle_alphabet(seed, alphabet=None):
@@ -99,9 +99,7 @@ class SqidsField(Field):
             if value.startswith(self.prefix):
                 value = value[len(self.prefix) :]
             else:
-                raise IncorrectPrefixError(
-                    "Value(%s) does not start with prefix(%s)" % (value, self.prefix)
-                )
+                return None
         decoded_values = self.sqids_instance.decode(value)
         if not decoded_values:
             return None
