@@ -36,13 +36,15 @@ class SqidsField(Field):
         sqids_instance=None,
         alphabet=None,
         min_length=None,
-        **kwargs
+        prefix="",
+        **kwargs,
     ):
         kwargs.pop("editable", None)
         super().__init__(*args, editable=False, **kwargs)
         self.real_field_name = real_field_name
         self.min_length = min_length
         self.alphabet = alphabet
+        self.prefix = prefix
         self._explicit_sqids_instance = sqids_instance
 
         self.sqids_instance = None
@@ -93,13 +95,20 @@ class SqidsField(Field):
         return Sqids(min_length=min_length, alphabet=alphabet)
 
     def get_prep_value(self, value):
+        if self.prefix:
+            if value.startswith(self.prefix):
+                value = value[len(self.prefix) :]
+            else:
+                return None
         decoded_values = self.sqids_instance.decode(value)
         if not decoded_values:
             return None
         return decoded_values[0]
 
     def from_db_value(self, value, expression, connection, *args):
-        return self.sqids_instance.encode([value])
+        # Prepend the prefix when encoding for display
+        encoded_value = self.sqids_instance.encode([value])
+        return f"{self.prefix}{encoded_value}" if encoded_value is not None else None
 
     def get_col(self, alias, output_field=None):
         if output_field is None:
@@ -135,7 +144,9 @@ class SqidsField(Field):
         if real_value is None:
             return ""
         assert isinstance(real_value, int)
-        return self.sqids_instance.encode([real_value])
+        # Prepend the prefix when encoding for display
+        encoded_value = self.sqids_instance.encode([real_value])
+        return f"{self.prefix}{encoded_value}"
 
     def __set__(self, instance, value):
         pass

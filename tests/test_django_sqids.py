@@ -4,9 +4,11 @@ import pytest
 from django import setup
 from django.db.models import ExpressionWrapper, F, IntegerField
 from django.test import override_settings
+from django.urls import reverse
 from rest_framework import serializers
 from sqids import Sqids
 
+from django_sqids import SqidsField
 from django_sqids.exceptions import ConfigError, RealFieldDoesNotExistError
 from django_sqids.field import shuffle_alphabet
 
@@ -338,3 +340,192 @@ def test_serialization_with_own_sqids_instance():
     assert (
         serializer.data["sqid"] == instance.sqid
     ), "The serialized 'sqid' should match the instance's sqid"
+
+
+def test_prefix_is_applied_correctly():
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance = TestModelWithPrefix.objects.create()
+    assert instance.sqid.startswith("P-"), "The sqid field value should start with 'P-'"
+
+
+def test_lookups_work_with_manual_prefix():
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance = TestModelWithPrefix.objects.create()
+    sqids = Sqids()
+    sqids_with_prefix = f"P-{sqids.encode([instance.pk])}"
+
+    got_instance = TestModelWithPrefix.objects.filter(
+        sqid__exact=sqids_with_prefix
+    ).first()
+    assert instance == got_instance, "Exact lookup with prefix should work"
+
+
+def test_lookups_ignore_prefix():
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance = TestModelWithPrefix.objects.create()
+    fetched_instance = TestModelWithPrefix.objects.get(sqid=instance.sqid)
+
+    assert (
+        fetched_instance == instance
+    ), "Should be able to fetch the instance by sqid even with prefix"
+
+
+def test_prefix_does_not_affect_filtering():
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance1 = TestModelWithPrefix.objects.create()
+    instance2 = TestModelWithPrefix.objects.create()
+    sqids = [instance1.sqid, instance2.sqid]
+
+    filtered_instances = set(TestModelWithPrefix.objects.filter(sqid__in=sqids))
+    assert filtered_instances == {
+        instance1,
+        instance2,
+    }, "Filtering by sqid with prefix should return correct instances"
+
+
+def test_prefix_with_exact_lookup():
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance = TestModelWithPrefix.objects.create()
+    got_instance = TestModelWithPrefix.objects.filter(sqid__exact=instance.sqid).first()
+    assert instance == got_instance, "Exact lookup with prefix should work"
+
+
+def test_prefix_with_in_lookup():
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance1 = TestModelWithPrefix.objects.create()
+    instance2 = TestModelWithPrefix.objects.create()
+    sqids_with_prefix = [instance1.sqid, instance2.sqid]
+
+    qs = TestModelWithPrefix.objects.filter(sqid__in=sqids_with_prefix)
+    assert set([instance1, instance2]) == set(
+        qs
+    ), "IN lookup with prefix should return correct instances"
+
+
+def test_lookup_with_incorrect_prefix():
+    """Tests behavior when an incorrect prefix is used in a lookup."""
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance = TestModelWithPrefix.objects.create()
+    incorrect_sqid = "X-" + instance.sqid[2:]
+    with pytest.raises(TestModelWithPrefix.DoesNotExist):
+        TestModelWithPrefix.objects.get(sqid=incorrect_sqid)
+
+
+def test_case_sensitivity_with_prefix():
+    """Tests case sensitivity in lookups involving prefixes."""
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance = TestModelWithPrefix.objects.create()
+    # Use a different case for the prefix in the lookup
+    mixed_case_sqid = "p-" + instance.sqid[2:].lower()
+    with pytest.raises(TestModelWithPrefix.DoesNotExist):
+        TestModelWithPrefix.objects.get(sqid=mixed_case_sqid)
+
+
+def test_complex_query_with_prefix():
+    """Tests a complex query (e.g., join) to ensure prefix doesn't interfere."""
+    from tests.test_app.models import TestUserRelatedWithPrefix, TestUserWithPrefix
+
+    user = TestUserWithPrefix.objects.create()
+    related = TestUserRelatedWithPrefix.objects.create(user=user)
+
+    fetched_related = (
+        TestUserRelatedWithPrefix.objects.select_related("user")
+        .filter(user__sqid=user.sqid)
+        .first()
+    )
+    assert (
+        fetched_related == related
+    ), "Complex query with prefix should return correct related instance"
+
+
+def test_serialization_with_prefix():
+    """Test DRF serialization and deserialization with prefix."""
+    from tests.test_app.models import TestModelWithPrefix
+
+    class TestModelWithPrefixSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = TestModelWithPrefix
+            fields = ["sqid"]
+
+    instance = TestModelWithPrefix.objects.create()
+    serializer = TestModelWithPrefixSerializer(instance)
+
+    # Simulate serialization
+    serialized_data = serializer.data
+    assert serialized_data["sqid"].startswith(
+        "P-"
+    ), "Serialized data should contain prefixed sqid"
+
+    # Simulate deserialization and validation
+    input_data = {"sqid": serialized_data["sqid"]}
+    new_serializer = TestModelWithPrefixSerializer(data=input_data)
+    assert new_serializer.is_valid(), "Deserialized data with prefix should be valid"
+
+
+def test_url_for_model_without_prefix(client):
+    """Test that the URL for a model without prefix can be resolved."""
+    from tests.test_app.models import TestModel
+
+    instance = TestModel.objects.create()
+    url = reverse("without-prefix", kwargs={"sqid": instance.sqid})
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.context["object"] == instance
+
+
+def test_incorrect_url_for_model_without_prefix(client):
+    """Tests that url fails when adding a prefix for model not expecting prefix."""
+    from tests.test_app.models import TestModel
+
+    instance = TestModel.objects.create()
+    url = reverse("without-prefix", kwargs={"sqid": "P-" + instance.sqid})
+    response = client.get(url)
+    assert response.status_code == 404, "URL for model not expecting prefix return 404"
+
+
+def test_url_for_model_with_prefix(client):
+    """Test that the URL for a model with prefix can be resolved."""
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance = TestModelWithPrefix.objects.create()
+    url = reverse("with-prefix", kwargs={"sqid": instance.sqid})
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.context["object"] == instance
+
+
+def test_incortect_url_for_model_with_prefix(client):
+    """Tests that url fails when resolving URL with incorrect prefix."""
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance = TestModelWithPrefix.objects.create()
+    url = reverse("with-prefix", kwargs={"sqid": instance.sqid[2:]})
+    response = client.get(url)
+    assert response.status_code == 404, "URL without prefix returns 404"
+
+    url = reverse("with-prefix", kwargs={"sqid": f"R-{instance.sqid[2:]}"})
+    response = client.get(url)
+    assert response.status_code == 404, "URL with incorrect prefix returns 404"
+
+
+def test_url_manually_with_prefix(client):
+    """Test that the URL for a model with prefix can be resolved manually."""
+    from tests.test_app.models import TestModelWithPrefix
+
+    instance = TestModelWithPrefix.objects.create()
+    sqids = Sqids()
+    sqids_with_prefix = f"P-{sqids.encode([instance.pk])}"
+
+    url = reverse("with-prefix", kwargs={"sqid": sqids_with_prefix})
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.context["object"] == instance
+

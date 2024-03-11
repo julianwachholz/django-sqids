@@ -10,6 +10,10 @@ class TestModel(Model):
     sqid = SqidsField(real_field_name="id")
 
 
+class TestModelWithPrefix(Model):
+    sqid = SqidsField(real_field_name="id", prefix="P-")
+
+
 class TestModelWithDifferentConfig(Model):
     sqid = SqidsField(min_length=5, alphabet="OPQRST1234567890")
 
@@ -25,11 +29,23 @@ class TestUser(AbstractUser):
     sqid = SqidsField(real_field_name="id")
 
 
+class TestUserWithPrefix(AbstractUser):
+    sqid = SqidsField(real_field_name="id", prefix="U-")
+
+
 class TestUserRelated(Model):
     sqid = SqidsField(real_field_name="id")
 
     user = models.ForeignKey(
         "TestUser", related_name="related", on_delete=models.CASCADE
+    )
+
+
+class TestUserRelatedWithPrefix(Model):
+    sqid = SqidsField(real_field_name="id", prefix="R-")
+
+    user = models.ForeignKey(
+        "TestUserWithPrefix", related_name="related", on_delete=models.CASCADE
     )
 
 

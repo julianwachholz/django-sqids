@@ -42,3 +42,9 @@ elif os.environ.get("TEST_WITH_MYSQL"):
             },
         }
     }
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "APP_DIRS": True,
+    },
+]
