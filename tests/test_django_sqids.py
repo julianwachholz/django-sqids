@@ -297,6 +297,51 @@ def test_no_real_field_error_message():
         Foo.objects.filter(hash_id="foo")
 
 
+def test_basic_serialization():
+    from tests.test_app.models import TestModel
+
+    class TestModelSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = TestModel
+            fields = ["sqid"]
+
+    instance = TestModel.objects.create()
+    serializer = TestModelSerializer(instance)
+    serialized_data = serializer.data
+    assert "sqid" in serializer.data
+    assert serializer.data["sqid"] == instance.sqid
+
+
+def test_serialization_with_custom_config():
+    from tests.test_app.models import TestModelWithDifferentConfig
+
+    class TestModelWithDifferentConfigSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = TestModelWithDifferentConfig
+            fields = ["sqid"]
+
+    instance = TestModelWithDifferentConfig.objects.create()
+    serializer = TestModelWithDifferentConfigSerializer(instance)
+    assert "sqid" in serializer.data
+
+
+def test_serialization_with_own_sqids_instance():
+    from tests.test_app.models import TestModelWithOwnInstance
+
+    class TestModelWithOwnInstanceSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = TestModelWithOwnInstance
+            fields = ["sqid"]
+
+    instance = TestModelWithOwnInstance.objects.create()
+    serializer = TestModelWithOwnInstanceSerializer(instance)
+
+    assert "sqid" in serializer.data, "Serialized data must include 'sqid' field"
+    assert (
+        serializer.data["sqid"] == instance.sqid
+    ), "The serialized 'sqid' should match the instance's sqid"
+
+
 def test_prefix_is_applied_correctly():
     from tests.test_app.models import TestModelWithPrefix
 
@@ -483,3 +528,4 @@ def test_url_manually_with_prefix(client):
     response = client.get(url)
     assert response.status_code == 200
     assert response.context["object"] == instance
+
