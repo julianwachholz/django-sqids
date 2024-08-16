@@ -94,6 +94,9 @@ class SqidsField(Field):
             )
         return Sqids(min_length=min_length, alphabet=alphabet)
 
+    def get_internal_type(self):
+        return "CharField"
+
     def get_prep_value(self, value):
         if self.prefix:
             if value.startswith(self.prefix):
