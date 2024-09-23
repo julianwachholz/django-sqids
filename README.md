@@ -103,7 +103,7 @@ The following attributes can be added in settings file to set default arguments 
 1. `DJANGO_SQIDS_MIN_LENGTH`: default minimum length
 2. `DJANGO_SQIDS_ALPHABET`: default alphabet
 > **Note**
-> It is recommended that you provide a random string of alphabets for `DJANGO_SQIDS_ALPHABET` setting even if you are using the same characters as those in the default alphabet i.e. `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`. This will ensure that your IDs will be unique to you. You may use an online tool like [this one](https://codebeautify.org/shuffle-letters) to shuffle the default string.
+> It is recommended that you provide a random string of alphabets for `DJANGO_SQIDS_ALPHABET` setting even if you are using the same characters as those in the default alphabet i.e. `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`. This will ensure that your IDs will be unique to you. You may use the `shuffle_alphabet` function provided with `django-sqids` to shuffle the default string.
 
 `SqidsField` does not reqiure any arguments but the following arguments can be supplied to modify its behavior.
 
