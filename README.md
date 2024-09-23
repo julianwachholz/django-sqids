@@ -103,7 +103,7 @@ The following attributes can be added in settings file to set default arguments 
 1. `DJANGO_SQIDS_MIN_LENGTH`: default minimum length
 2. `DJANGO_SQIDS_ALPHABET`: default alphabet
 
-`SqidsField` does not reqiure any arguments but the following arguments can be supplied to modify its behavior.
+`SqidsField` does not require any arguments but the following arguments can be supplied to modify its behavior.
 
 | Name              |                       Description                       | Example                                                     |
 | ----------------- | :-----------------------------------------------------: | ----------------------------------------------------------- |
