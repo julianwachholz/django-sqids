@@ -106,6 +106,8 @@ class SqidsField(Field):
         decoded_values = self.sqids_instance.decode(value)
         if not decoded_values:
             return None
+        if len(decoded_values) > 1:
+            return None
         return decoded_values[0]
 
     def from_db_value(self, value, expression, connection, *args):

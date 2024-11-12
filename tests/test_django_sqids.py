@@ -529,3 +529,13 @@ def test_url_manually_with_prefix(client):
     assert response.status_code == 200
     assert response.context["object"] == instance
 
+def test_sqid_with_many_numbers():
+    from tests.test_app.models import TestModelWithDifferentConfig
+    instance = TestModelWithDifferentConfig.objects.create()
+    sqids_instance = TestModelWithDifferentConfig.sqid.get_sqid_instance()
+    sqid_single_number = sqids_instance.encode([instance.pk])
+    sqid_two_numbers = sqids_instance.encode([instance.pk, 42])
+
+    assert TestModelWithDifferentConfig.objects.get(sqid=sqid_single_number) == instance
+    with pytest.raises(TestModelWithDifferentConfig.DoesNotExist):
+        TestModelWithDifferentConfig.objects.get(sqid=sqid_two_numbers)
