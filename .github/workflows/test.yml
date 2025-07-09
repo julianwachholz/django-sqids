@@ -33,7 +33,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install tooling
         run: |
-          python -m pip install poetry==2.1.2
+          python -m pip install poetry
       - name: Install dependencies
         run: |
           poetry install
