@@ -3,11 +3,16 @@ import os
 SECRET_KEY = "1"
 DEBUG = True
 INSTALLED_APPS = [
+    "django.contrib.sessions",
     "django.contrib.contenttypes",
     "django.contrib.auth",
+    "django.contrib.admin",
     "tests.test_app",
 ]
-MIDDLEWARE = []
+MIDDLEWARE = [
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+]
 ROOT_URLCONF = "tests.urls"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 DATABASES = {
@@ -46,5 +51,10 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.contrib.auth.context_processors.auth",
+            ],
+        },
     },
 ]

@@ -1,3 +1,4 @@
+import random
 import os
 
 import pytest
@@ -539,3 +540,24 @@ def test_sqid_with_many_numbers():
     assert TestModelWithDifferentConfig.objects.get(sqid=sqid_single_number) == instance
     with pytest.raises(TestModelWithDifferentConfig.DoesNotExist):
         TestModelWithDifferentConfig.objects.get(sqid=sqid_two_numbers)
+
+
+def test_lookup_django_admin_by_sqid(admin_client):
+    from tests.test_app.models import TestModelWithDifferentConfig
+
+    instances = [TestModelWithDifferentConfig.objects.create() for _ in range(5)]
+
+    search_instance = random.choice(instances)  # Ensure instances are created
+    url = f"/admin/test_app/testmodelwithdifferentconfig/?q={search_instance.sqid}"
+    response = admin_client.get(url)
+    html_content = response.content.decode()
+
+    assert '1 result (<a href="?">5 total</a>)' in html_content
+
+    for instance in instances:
+        # end of a <th> tag to ignore the repeated search term
+        search = f">{instance.sqid}</a></th>"
+        if instance == search_instance:
+            assert search in html_content, f"Expected {search_instance.sqid} to be IN the response content"
+        else:
+            assert search not in html_content, f"Expected {search_instance.sqid} to NOT be in the response content"

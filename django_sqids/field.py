@@ -2,7 +2,7 @@ import random
 
 from django.conf import settings
 from django.core.exceptions import FieldError
-from django.db.models import Field
+from django.db.models import CharField, Field
 from django.utils.functional import cached_property
 from sqids import Sqids
 from sqids.constants import DEFAULT_ALPHABET, DEFAULT_MIN_LENGTH
@@ -25,9 +25,9 @@ def shuffle_alphabet(seed, alphabet=None):
     return "".join(letters)
 
 
-class SqidsField(Field):
+class SqidsField(CharField):
     concrete = False
-    allowed_lookups = ("exact", "iexact", "in", "gt", "gte", "lt", "lte", "isnull")
+    allowed_lookups = ("exact", "in", "gt", "gte", "lt", "lte", "isnull")
 
     def __init__(
         self,
