@@ -18,7 +18,6 @@ The project was forked from [django-hashids](https://github.com/ericls/django-ha
 - Supports custom min_length, prefix, and alphabet per field.
 - Supports Django REST Framework Serializers.
 - Supports exact ID searches in Django Admin when field is specified in search_fields.
-- Supports filtering by `__iexact`, though matching is the same as `__exact`.
 - Supports other lookups: `in`, `isnull`, `gt`, `gte`, `lt`, and `lte`.
 
 # Install
