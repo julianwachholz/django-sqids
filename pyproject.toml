@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-sqids"
-version = "0.2.1"
+version = "0.2.2"
 readme = "README.md"
 description = "Non-intrusive sqids library for Django"
 homepage = "https://github.com/julianwachholz/django-sqids"
