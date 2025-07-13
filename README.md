@@ -101,6 +101,8 @@ The following attributes can be added in settings file to set default arguments 
 
 1. `DJANGO_SQIDS_MIN_LENGTH`: default minimum length
 2. `DJANGO_SQIDS_ALPHABET`: default alphabet
+> **Note**
+> It is recommended that you provide a random string of alphabets for `DJANGO_SQIDS_ALPHABET` setting (default: `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`). This will ensure that your IDs will be unique to you. You may use `python -m django_sqids.generate_random_alphabet` to get a random alphabet string.
 
 `SqidsField` does not require any arguments but the following arguments can be supplied to modify its behavior.
 
